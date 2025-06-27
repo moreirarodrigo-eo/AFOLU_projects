@@ -5,16 +5,18 @@ from streamlit_folium import st_folium
 import gdown
 import os
 
-# Google Drive file ID
+# Google Drive direct download link
+# Use the "uc?id=" format instead of "file/d/.../view"
+file_id = '17nVHldFwLUca6trQLV-ohrzHDkBr3DK4'
+url = f'https://drive.google.com/uc?id={file_id}'
 
-url = f'https://drive.google.com/file/d/17nVHldFwLUca6trQLV-ohrzHDkBr3DK4/view?usp=sharing'
+@st.cache_data
+def load_data():
+    if not os.path.exists("projects.geojson"):
+        gdown.download(url, "projects.geojson", quiet=False)
+    return gpd.read_file("projects.geojson")
 
-# Download the file if not already
-if not os.path.exists("projects.geojson"):
-    gdown.download(url, "projects.geojson", quiet=False)
-
-# Load the GeoJSON
-gdf = gpd.read_file("projects.geojson")
+gdf = load_data()
 
 # User input
 project_name_input = st.text_input("Digite o nome do projeto (ou deixe em branco para mostrar todos):")
@@ -33,5 +35,7 @@ if not filtered.empty:
         style_function=lambda x: {'color': 'red', 'weight': 2},
         tooltip=folium.GeoJsonTooltip(fields=['NM_PROJ'], aliases=['AFOLU:'])
     ).add_to(m)
+else:
+    st.warning("Nenhum projeto encontrado com esse nome.")
 
 st_folium(m, width=700, height=500)
