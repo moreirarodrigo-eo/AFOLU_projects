@@ -18,6 +18,8 @@ def load_data():
 
 gdf = load_data()
 
+gdf['geometry'] = gdf['geometry'].geometry.simplify(tolerance=0.5, preserve_topology=True)
+
 # User input
 project_name_input = st.text_input("Digite o nome do projeto (ou deixe em branco para mostrar todos):")
 
@@ -37,5 +39,14 @@ if not filtered.empty:
     ).add_to(m)
 else:
     st.warning("Nenhum projeto encontrado com esse nome.")
+
+# Exemplo: adicionar camadas de Terras Indígenas (se `gdf_ti` estiver definido)
+folium.GeoJson(
+        data = gdf,
+        style_function=lambda x: {'color': 'blue', 'weight': 1, 'fillOpacity': 0},
+        tooltip=GeoJsonTooltip(fields=['NM_PROJ'], aliases=['AFOLU:']),
+        name="Projetos AFOLU"
+    ).add_to(mapa_projetos)
+
 
 st_folium(m, width=700, height=500)
